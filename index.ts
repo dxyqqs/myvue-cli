@@ -203,7 +203,7 @@ const getGitConfig = function (): Promise<{ name: string, email: string }> {
        * @description create version and logo
        * @example zoom -V/--version
        */
-      const logo = await createFiglet("zoom", 'Isometric1')
+      const logo = await createFiglet("myvue", 'Isometric1')
       program
         .version(`${logo.blue}  \n\n\r${('version:' + version).green.bgWhite}\n\r`)
 

@@ -218,7 +218,7 @@ var getGitConfig = function () {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, figlet_1.createFiglet("zoom", 'Isometric1')];
+                return [4 /*yield*/, figlet_1.createFiglet("myvue", 'Isometric1')];
             case 1:
                 logo_1 = _a.sent();
                 program
