@@ -1,21 +1,21 @@
 # 命令
-`myvue init [project-name]`  
+[x] `myvue init [project-name]`  
 **项目名称：**  
-[+] project-name  
+project-name  
 
 **语言选择：**
-- [+] javascript
-- [+] typescript  
+- [x] javascript
+- [x] typescript  
 
 **样式选择：**
-- [+] CSS
-- [+] SCSS(SASS)  
+- [x] CSS
+- [x] SCSS(SASS)  
 
 **样式框架：**
-- [-] Bootstrap
-- [-] None 
+- [ ] Bootstrap
+- [ ] None 
 
-[-]`myvue template [template-name]`  
+[ ]`myvue template [template-name]`  
 **模板名称：**
 
 # Feature
