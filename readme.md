@@ -1,5 +1,5 @@
 # 命令
-[x] `myvue init [project-name]`  
+`myvue init [project-name]`  
 **项目名称：**  
 project-name  
 
@@ -15,8 +15,10 @@ project-name
 - [ ] Bootstrap
 - [ ] None 
 
-[ ]`myvue template [template-name]`  
+`myvue template [template-name]`  
 **模板名称：**
+template-name *(todo)*
+
 
 # Feature
 1. 基于框架`Vue`的应用
