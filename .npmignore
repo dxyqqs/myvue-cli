@@ -1,0 +1,15 @@
+# ts files
+**/*.ts
+
+# node
+node_modules
+
+# IDE
+.vscode
+
+# git 
+.git
+.gitignore
+
+# template
+template
