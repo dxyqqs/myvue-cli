@@ -1,21 +1,17 @@
 #!/usr/bin/env node
-import { pathExistsSync, removeSync, readFile } from "fs-extra";
 import "colors";
 import * as program from "commander";
+import { pathExistsSync, removeSync, readFile } from "fs-extra";
 import { prompt, Answers } from "inquirer";
 import * as path from "path";
-
-import { version } from "./package.json";
-import { createFiglet } from "./lib/figlet";
 import { compile } from "handlebars";
 import { Buffer } from "buffer";
 
-
-
+import { version } from "./package.json";
+import { createFiglet } from "./lib/figlet";
 const validate = require("validate-npm-package-name");
 const download = require('download-git-repo');
 const metalsmith = require('metalsmith');
-const multimatch = require('multimatch');
 const loading = require('ora');
 
 
@@ -23,7 +19,7 @@ const loading = require('ora');
 const validateName = (name: string): string | boolean => {
 
   // check the project if already exists
-  if (pathExistsSync(path.join(process.cwd(), name))) {
+  if (name && pathExistsSync(path.join(process.cwd(), name))) {
     return "The project already exists!".red
   }
 

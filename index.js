@@ -42,10 +42,10 @@ require("colors");
 var program = require("commander");
 var inquirer_1 = require("inquirer");
 var path = require("path");
-var package_json_1 = require("./package.json");
-var figlet_1 = require("./lib/figlet");
 var handlebars_1 = require("handlebars");
 var buffer_1 = require("buffer");
+var package_json_1 = require("./package.json");
+var figlet_1 = require("./lib/figlet");
 var validate = require("validate-npm-package-name");
 var download = require('download-git-repo');
 var metalsmith = require('metalsmith');
@@ -54,7 +54,7 @@ var loading = require('ora');
 // Verify the project name
 var validateName = function (name) {
     // check the project if already exists
-    if (fs_extra_1.pathExistsSync(path.join(process.cwd(), name))) {
+    if (name && fs_extra_1.pathExistsSync(path.join(process.cwd(), name))) {
         return "The project already exists!".red;
     }
     var v = validate(name);
