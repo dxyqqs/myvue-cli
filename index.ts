@@ -196,16 +196,7 @@ const getGitConfig = function (): Promise<{ name: string, email: string }> {
   })
 }
 
-  // start question
 
-  // function* startQuestions(){
-  //   yield questions.script();
-  //   yield questions.style();
-  //   yield questions.author(username, useremail);
-  //   yield questions.version();
-  //   yield questions.description();
-  //   yield questions.license();
-  // }
 
 
   // todo:check the template
@@ -223,7 +214,7 @@ const getGitConfig = function (): Promise<{ name: string, email: string }> {
        */
 
       const logo = await createFiglet("myvue", 'Isometric1');
-      const ver_logo = `${logo.blue}  \n\n\r${('version:' + version).green.bgWhite}\n\r`;
+      const ver_logo = `${logo.blue}  \n\n\r ${('version:' + version).green.bgWhite}\n\r`;
       program
         .version(ver_logo)
       /**
@@ -335,39 +326,30 @@ const getGitConfig = function (): Promise<{ name: string, email: string }> {
         .option('-T,--typescript', 'use typescript')
         .option('-S,--scss', 'use scss')
         .action(async function (name, options) {
-          // console.log(process.cwd())
-          // console.log(__dirname)
+
           try {
             const componentName = name;
             const hasScss = !!options.scss;
             const hasTypescript = !!options.typescript;
             const rename = {
-              [`${name}.${hasTypescript ? 'ts' : 'js'}`]: /test\.js/
+              [`${name}.vue`]: /template\.vue/
             };
-            console.log(name, options.typescript, options.scss)
             loadingAnim.start('Please wait...');
             removeSync(localPath);
             await downloadTemp(localPath)
+            await renderTemplate(path.join(process.cwd(), componentName), [], { component: { name, hasScss, hasTypescript } }, 'template/comp_temp', rename)
 
-            await renderTemplate(path.join(process.cwd(), componentName), [], { component: { hasScss, hasTypescript } }, 'template/comp_temp', rename)
+            loadingAnim.succeed(`Component ${(name).red} has been created!`);
 
-
-            loadingAnim.succeed(`Component has been created!`);
           } catch (error) {
             throw error;
           }
-
-
-
-
-
-
         })
         .on('--help', () => {
           console.log('')
           console.log('  Examples:');
           console.log('')
-          console.log('    $ myvue component|comp [-s|--scss][-t|--typescript] <component-name>')
+          console.log('    $ myvue component|comp [-S|--scss][-T|--typescript] <component-name>')
           console.log('')
         });
       // help
@@ -377,7 +359,7 @@ const getGitConfig = function (): Promise<{ name: string, email: string }> {
           console.log('  Examples:');
           console.log('')
           console.log('    $ myvue init [project-name]')
-          console.log('    $ myvue component|comp [-s|--scss][-t|--typescript] <component-name>')
+          console.log('    $ myvue component|comp [-S|--scss][-T|--typescript] <component-name>')
           console.log('')
         })
       // run

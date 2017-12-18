@@ -235,7 +235,7 @@ var getGitConfig = function () {
                 return [4 /*yield*/, figlet_1.createFiglet("myvue", 'Isometric1')];
             case 2:
                 logo_1 = _a.sent();
-                ver_logo = logo_1.blue + "  \n\n\r" + ('version:' + package_json_1.version).green.bgWhite + "\n\r";
+                ver_logo = logo_1.blue + "  \n\n\r " + ('version:' + package_json_1.version).green.bgWhite + "\n\r";
                 program
                     .version(ver_logo);
                 /**
@@ -373,18 +373,17 @@ var getGitConfig = function () {
                                     hasScss = !!options.scss;
                                     hasTypescript = !!options.typescript;
                                     rename = (_a = {},
-                                        _a[name + "." + (hasTypescript ? 'ts' : 'js')] = /test\.js/,
+                                        _a[name + ".vue"] = /template\.vue/,
                                         _a);
-                                    console.log(name, options.typescript, options.scss);
                                     loadingAnim.start('Please wait...');
                                     fs_extra_1.removeSync(localPath);
                                     return [4 /*yield*/, downloadTemp(localPath)];
                                 case 1:
                                     _b.sent();
-                                    return [4 /*yield*/, renderTemplate(path.join(process.cwd(), componentName), [], { component: { hasScss: hasScss, hasTypescript: hasTypescript } }, 'template/comp_temp', rename)];
+                                    return [4 /*yield*/, renderTemplate(path.join(process.cwd(), componentName), [], { component: { name: name, hasScss: hasScss, hasTypescript: hasTypescript } }, 'template/comp_temp', rename)];
                                 case 2:
                                     _b.sent();
-                                    loadingAnim.succeed("Component has been created!");
+                                    loadingAnim.succeed("Component " + (name).red + " has been created!");
                                     return [3 /*break*/, 4];
                                 case 3:
                                     error_4 = _b.sent();
@@ -398,7 +397,7 @@ var getGitConfig = function () {
                     console.log('');
                     console.log('  Examples:');
                     console.log('');
-                    console.log('    $ myvue component|comp [-s|--scss][-t|--typescript] <component-name>');
+                    console.log('    $ myvue component|comp [-S|--scss][-T|--typescript] <component-name>');
                     console.log('');
                 });
                 // help
@@ -408,7 +407,7 @@ var getGitConfig = function () {
                     console.log('  Examples:');
                     console.log('');
                     console.log('    $ myvue init [project-name]');
-                    console.log('    $ myvue component|comp [-s|--scss][-t|--typescript] <component-name>');
+                    console.log('    $ myvue component|comp [-S|--scss][-T|--typescript] <component-name>');
                     console.log('');
                 });
                 // run
