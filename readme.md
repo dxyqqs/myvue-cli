@@ -17,7 +17,7 @@ project-name
 
 `myvue component <component-name>[ -S|--scss][ -T|--typescript]`  
 **模板名称：**
-template-name   
+component-name   
 
 **语言选择：**
 - [x] javascript
