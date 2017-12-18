@@ -15,9 +15,17 @@ project-name
 - [ ] Bootstrap
 - [ ] None 
 
-`myvue template [template-name]`  
+`myvue component <component-name>[ -S|--scss][ -T|--typescript]`  
 **模板名称：**
-template-name *(todo)*
+template-name   
+
+**语言选择：**
+- [x] javascript
+- [x] typescript  
+
+**样式选择：**
+- [x] CSS
+- [x] SCSS(SASS)  
 
 
 # Feature
