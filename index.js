@@ -37,9 +37,9 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
-var fs_extra_1 = require("fs-extra");
 require("colors");
 var program = require("commander");
+var fs_extra_1 = require("fs-extra");
 var inquirer_1 = require("inquirer");
 var path = require("path");
 var handlebars_1 = require("handlebars");
@@ -49,7 +49,6 @@ var figlet_1 = require("./lib/figlet");
 var validate = require("validate-npm-package-name");
 var download = require('download-git-repo');
 var metalsmith = require('metalsmith');
-var multimatch = require('multimatch');
 var loading = require('ora');
 // Verify the project name
 var validateName = function (name) {
@@ -140,7 +139,7 @@ var questions = {
 // download template
 var downloadTemp = function (path, url) {
     if (path === void 0) { path = "test"; }
-    if (url === void 0) { url = 'CloudDeng/vue-template'; }
+    if (url === void 0) { url = 'dxyqqs/myvue-temp'; }
     return new Promise(function (res, rej) {
         download(url, path, function (err) {
             if (err) {
@@ -163,24 +162,35 @@ var renderPlugin = function (opts) {
         Object.keys(files).forEach(function (file) {
             // if(multimatch(file, opts.pattern).length) {}
             var content = files[file].contents.toString();
-            // if dont hash '{}' 
+            // if dont has '{}' 
             if (/{{[^}]+}}/g.test(content)) {
                 var newContent = handlebars_1.compile(content)(data);
                 files[file].contents = new buffer_1.Buffer(newContent);
+            }
+            if (opts) {
+                var names = Object.keys(opts);
+                if (names.length) {
+                    var name = names.find(function (e) { return opts[e].test(file); });
+                    if (name) {
+                        files[path.join(path.dirname(file), name)] = files[file];
+                        delete files[file];
+                    }
+                }
             }
         });
     };
 };
 // render project template
-var renderTemplate = function (targePath, ignore, data) {
+var renderTemplate = function (targePath, ignore, data, source, rename) {
+    if (source === void 0) { source = "template"; }
     return new Promise(function (res, rej) {
         var fuc = metalsmith(__dirname)
             .metadata(data)
-            .source('template')
+            .source(source)
             .ignore(['.gitignore'].concat(ignore))
             .destination(targePath)
             .clean(false)
-            .use(renderPlugin())
+            .use(renderPlugin(rename))
             .build(function (err) {
             if (err) {
                 rej(err);
@@ -213,26 +223,31 @@ var getGitConfig = function () {
     });
 };
 (function () { return __awaiter(_this, void 0, void 0, function () {
-    var logo_1, error_1;
+    var loadingAnim, localPath, logo_1, ver_logo, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, figlet_1.createFiglet("myvue", 'Isometric1')];
+                loadingAnim = loading({ frames: ['-', '+', '-'] });
+                localPath = path.join(__dirname, 'template');
+                _a.label = 1;
             case 1:
+                _a.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, figlet_1.createFiglet("myvue", 'Isometric1')];
+            case 2:
                 logo_1 = _a.sent();
+                ver_logo = logo_1.blue + "  \n\n\r" + ('version:' + package_json_1.version).green.bgWhite + "\n\r";
                 program
-                    .version(logo_1.blue + "  \n\n\r" + ('version:' + package_json_1.version).green.bgWhite + "\n\r");
+                    .version(ver_logo);
                 /**
-                 * @description creat action init and show the questions
-                 * @example zoom init [project-name]
+                 * @description create action init and show the questions
+                 * @example myvue init [project-name]
                  */
                 program
-                    .command('init [project-name]')
-                    .description('create Vue project with [project-name]')
+                    .command('init <project-name>')
+                    .description('create Vue project with <project-name>')
                     .action(function (name) {
                     return __awaiter(this, void 0, void 0, function () {
-                        var username, useremail, info, error_2, pname, v, _pname, script, style, version_1, author, description, license, localPath, targePath, loadingAnim_1, metadata, ignore, error_3;
+                        var username, useremail, gitConfig, error_2, pname, v, _pname, script, style, version_1, author, description, license, targePath, metadata, ignore, error_3;
                         return __generator(this, function (_a) {
                             switch (_a.label) {
                                 case 0:
@@ -243,9 +258,9 @@ var getGitConfig = function () {
                                     _a.trys.push([1, 3, , 4]);
                                     return [4 /*yield*/, getGitConfig()];
                                 case 2:
-                                    info = _a.sent();
-                                    username = info.name;
-                                    useremail = info.email;
+                                    gitConfig = _a.sent();
+                                    username = gitConfig.name;
+                                    useremail = gitConfig.email;
                                     return [3 /*break*/, 4];
                                 case 3:
                                     error_2 = _a.sent();
@@ -279,12 +294,10 @@ var getGitConfig = function () {
                                     return [4 /*yield*/, questions.license()];
                                 case 12:
                                     license = (_a.sent()).license;
-                                    localPath = path.join(__dirname, 'template');
                                     targePath = path.join(process.cwd(), pname);
-                                    loadingAnim_1 = loading({ frames: ['-', '+', '-'] });
+                                    loadingAnim.start('Please wait...');
                                     // delete template
                                     fs_extra_1.removeSync(localPath);
-                                    loadingAnim_1.start('Please wait...');
                                     // download the template
                                     return [4 /*yield*/, downloadTemp(localPath)
                                         // render the project template
@@ -306,7 +319,7 @@ var getGitConfig = function () {
                                             logo: logo_1
                                         }
                                     };
-                                    ignore = [];
+                                    ignore = ['**/comp_temp/**/*'];
                                     if (metadata.package.hasTypescript) {
                                         ignore.push('jsconfig.json', '**/app/**/*.js');
                                     }
@@ -322,12 +335,11 @@ var getGitConfig = function () {
                                     return [4 /*yield*/, renderTemplate(targePath, ignore, metadata)];
                                 case 14:
                                     _a.sent();
-                                    loadingAnim_1.succeed("Project has been created, don't forget to use " + 'yarn install'.bgWhite.red + " or " + 'npm install'.bgWhite.red + "!");
+                                    loadingAnim.succeed("Project has been created, don't forget to use " + 'yarn install'.bgWhite.red + " or " + 'npm install'.bgWhite.red + "!");
                                     return [3 /*break*/, 16];
                                 case 15:
                                     error_3 = _a.sent();
-                                    console.log(error_3);
-                                    return [3 /*break*/, 16];
+                                    throw error_3;
                                 case 16: return [2 /*return*/];
                             }
                         });
@@ -337,23 +349,80 @@ var getGitConfig = function () {
                     console.log('');
                     console.log('  Examples:');
                     console.log('');
-                    console.log('    $ zoom init [project name]');
+                    console.log('    $ myvue init <project-name>');
                     console.log('');
                 });
+                /**
+                 * @description create action component
+                 * @example myvue component/comp name -t -s
+                 */
                 program
-                    .command('test')
-                    .action(function () {
-                    console.log(process.cwd());
-                    console.log(__dirname);
+                    .command('component <component-name>')
+                    .description('create Vue component with <component-name>')
+                    .alias('comp')
+                    .option('-T,--typescript', 'use typescript')
+                    .option('-S,--scss', 'use scss')
+                    .action(function (name, options) {
+                    return __awaiter(this, void 0, void 0, function () {
+                        var componentName, hasScss, hasTypescript, rename, error_4, _a;
+                        return __generator(this, function (_b) {
+                            switch (_b.label) {
+                                case 0:
+                                    _b.trys.push([0, 3, , 4]);
+                                    componentName = name;
+                                    hasScss = !!options.scss;
+                                    hasTypescript = !!options.typescript;
+                                    rename = (_a = {},
+                                        _a[name + "." + (hasTypescript ? 'ts' : 'js')] = /test\.js/,
+                                        _a);
+                                    console.log(name, options.typescript, options.scss);
+                                    loadingAnim.start('Please wait...');
+                                    fs_extra_1.removeSync(localPath);
+                                    return [4 /*yield*/, downloadTemp(localPath)];
+                                case 1:
+                                    _b.sent();
+                                    return [4 /*yield*/, renderTemplate(path.join(process.cwd(), componentName), [], { component: { hasScss: hasScss, hasTypescript: hasTypescript } }, 'template/comp_temp', rename)];
+                                case 2:
+                                    _b.sent();
+                                    loadingAnim.succeed("Component has been created!");
+                                    return [3 /*break*/, 4];
+                                case 3:
+                                    error_4 = _b.sent();
+                                    throw error_4;
+                                case 4: return [2 /*return*/];
+                            }
+                        });
+                    });
+                })
+                    .on('--help', function () {
+                    console.log('');
+                    console.log('  Examples:');
+                    console.log('');
+                    console.log('    $ myvue component|comp [-s|--scss][-t|--typescript] <component-name>');
+                    console.log('');
                 });
-                program.parse(process.argv);
-                return [3 /*break*/, 3];
-            case 2:
+                // help
+                program
+                    .on('--help', function () {
+                    console.log('');
+                    console.log('  Examples:');
+                    console.log('');
+                    console.log('    $ myvue init [project-name]');
+                    console.log('    $ myvue component|comp [-s|--scss][-t|--typescript] <component-name>');
+                    console.log('');
+                });
+                // run
+                program
+                    .parse(process.argv);
+                if (!program.args.length)
+                    program.help();
+                return [3 /*break*/, 4];
+            case 3:
                 error_1 = _a.sent();
                 console.log(error_1);
                 process.exit(1);
-                return [3 /*break*/, 3];
-            case 3: return [2 /*return*/];
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
         }
     });
 }); })();

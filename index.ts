@@ -9,11 +9,11 @@ import { Buffer } from "buffer";
 
 import { version } from "./package.json";
 import { createFiglet } from "./lib/figlet";
+import { start } from "repl";
 const validate = require("validate-npm-package-name");
 const download = require('download-git-repo');
 const metalsmith = require('metalsmith');
 const loading = require('ora');
-
 
 // Verify the project name
 const validateName = (name: string): string | boolean => {
@@ -41,7 +41,7 @@ const questions = {
     return prompt({
       name: 'pname',
       message: 'project name:',
-      validate(input:string) {
+      validate(input: string) {
         return validateName(input)
       }
     })
@@ -107,7 +107,7 @@ const questions = {
 };
 
 // download template
-const downloadTemp = (path = "test", url: string = 'CloudDeng/vue-template') => {
+const downloadTemp = (path = "test", url: string = 'dxyqqs/myvue-temp') => {
   return new Promise((res, rej) => {
     download(url, path, (err: Error) => {
       if (err) {
@@ -131,10 +131,20 @@ const renderPlugin = function (opts?: any) {
     Object.keys(files).forEach(function (file) {
       // if(multimatch(file, opts.pattern).length) {}
       const content = files[file].contents.toString();
-      // if dont hash '{}' 
+      // if dont has '{}' 
       if (/{{[^}]+}}/g.test(content)) {
         const newContent = compile(content)(data);
         files[file].contents = new Buffer(newContent);
+      }
+      if (opts) {
+        const names = Object.keys(opts);
+        if (names.length) {
+          const name = names.find(e => opts[e].test(file))
+          if (name) {
+            files[path.join(path.dirname(file), name)] = files[file];
+            delete files[file];
+          }
+        }
       }
     });
 
@@ -143,15 +153,15 @@ const renderPlugin = function (opts?: any) {
 
 
 // render project template
-const renderTemplate = function (targePath: string, ignore: string[], data: { [props: string]: any }) {
+const renderTemplate = function (targePath: string, ignore: string[], data: { [props: string]: any }, source: string = "template", rename?: { [name: string]: RegExp }) {
   return new Promise((res, rej) => {
     const fuc = metalsmith(__dirname)
       .metadata(data)
-      .source('template')
+      .source(source)
       .ignore(['.gitignore', ...ignore])
       .destination(targePath)
       .clean(false)
-      .use(renderPlugin())
+      .use(renderPlugin(rename))
       .build(function (err: Error) {
         if (err) {
           rej(err)
@@ -186,41 +196,52 @@ const getGitConfig = function (): Promise<{ name: string, email: string }> {
   })
 }
 
+  // start question
+
+  // function* startQuestions(){
+  //   yield questions.script();
+  //   yield questions.style();
+  //   yield questions.author(username, useremail);
+  //   yield questions.version();
+  //   yield questions.description();
+  //   yield questions.license();
+  // }
+
+
   // todo:check the template
-
-
 
 
   // Start processing command line instructions
   ; (async () => {
 
+    const loadingAnim = loading({ frames: ['-', '+', '-'] });
+    const localPath = path.join(__dirname, 'template');
     try {
       /**
        * @description create version and logo
-       * @example zoom -V/--version
+       * @example myvue -V/--version
        */
-      const logo = await createFiglet("myvue", 'Isometric1')
-      program
-        .version(`${logo.blue}  \n\n\r${('version:' + version).green.bgWhite}\n\r`)
 
+      const logo = await createFiglet("myvue", 'Isometric1');
+      const ver_logo = `${logo.blue}  \n\n\r${('version:' + version).green.bgWhite}\n\r`;
+      program
+        .version(ver_logo)
       /**
-       * @description creat action init and show the questions
-       * @example zoom init [project-name]
+       * @description create action init and show the questions
+       * @example myvue init [project-name]
        */
       program
-        .command('init [project-name]')
-        .description('create Vue project with [project-name]')
+        .command('init <project-name>')
+        .description('create Vue project with <project-name>')
         .action(async function (name: string) {
-          // catch the git config
+          // get the git config
           let username = '';
           let useremail = '';
           try {
-            const info = await getGitConfig();
-            username = info.name;
-            useremail = info.email;
-          } catch (error) {
-
-          }
+            const gitConfig = await getGitConfig();
+            username = gitConfig.name;
+            useremail = gitConfig.email;
+          } catch (error) { }
 
 
           // catch the project config
@@ -232,29 +253,27 @@ const getGitConfig = function (): Promise<{ name: string, email: string }> {
               const { pname: _pname } = (await questions.pname());
               pname = _pname
             }
-            // catch the script style
-            // todo: add select question
+
+
             const { script } = await questions.script();
-            // const script = "javascript";
-            // catch the css style
+
             const { style } = await questions.style();
-            // catch the version
+
             const { version } = await questions.version();
 
             const { author } = await questions.author(username, useremail)
+
             const { description } = await questions.description();
+
             const { license } = await questions.license();
 
+
             // download the project from the github
-            const localPath = path.join(__dirname, 'template');
             const targePath = path.join(process.cwd(), pname);
-            const loadingAnim = loading({ frames: ['-', '+', '-'] });
-
-
-            // delete template
-            removeSync(localPath);
 
             loadingAnim.start('Please wait...');
+            // delete template
+            removeSync(localPath);
             // download the template
             await downloadTemp(localPath)
             // render the project template
@@ -265,8 +284,8 @@ const getGitConfig = function (): Promise<{ name: string, email: string }> {
                 description: `"${description || ''}"`,
                 author: `"${author || ''}"`,
                 license: `"${license || ''}"`,
-                script:`"${script.toLowerCase()}"`,
-                style:`"${style.toLowerCase()}"`,
+                script: `"${script.toLowerCase()}"`,
+                style: `"${style.toLowerCase()}"`,
                 hasScss: style.toLowerCase() === "scss",
                 hasTypescript: script.toLowerCase() === "typescript",
                 logo
@@ -274,10 +293,10 @@ const getGitConfig = function (): Promise<{ name: string, email: string }> {
             };
 
             // ignore some files
-            const ignore = [];
+            const ignore = ['**/comp_temp/**/*'];
 
             if (metadata.package.hasTypescript) {
-              ignore.push('jsconfig.json','**/app/**/*.js')
+              ignore.push('jsconfig.json', '**/app/**/*.js')
             } else {
               ignore.push('tsconfig.json', '**/*.ts')
             }
@@ -292,7 +311,7 @@ const getGitConfig = function (): Promise<{ name: string, email: string }> {
             loadingAnim.succeed(`Project has been created, don't forget to use ${'yarn install'.bgWhite.red} or ${'npm install'.bgWhite.red}!`);
 
           } catch (error) {
-            console.log(error)
+            throw error;
           }
 
 
@@ -301,19 +320,71 @@ const getGitConfig = function (): Promise<{ name: string, email: string }> {
           console.log('')
           console.log('  Examples:');
           console.log('')
-          console.log('    $ zoom init [project name]')
+          console.log('    $ myvue init <project-name>')
           console.log('')
         })
 
+      /**
+       * @description create action component
+       * @example myvue component/comp name -t -s
+       */
       program
-        .command('test')
-        .action(function () {
-          console.log(process.cwd())
-          console.log(__dirname)
+        .command('component <component-name>')
+        .description('create Vue component with <component-name>')
+        .alias('comp')
+        .option('-T,--typescript', 'use typescript')
+        .option('-S,--scss', 'use scss')
+        .action(async function (name, options) {
+          // console.log(process.cwd())
+          // console.log(__dirname)
+          try {
+            const componentName = name;
+            const hasScss = !!options.scss;
+            const hasTypescript = !!options.typescript;
+            const rename = {
+              [`${name}.${hasTypescript ? 'ts' : 'js'}`]: /test\.js/
+            };
+            console.log(name, options.typescript, options.scss)
+            loadingAnim.start('Please wait...');
+            removeSync(localPath);
+            await downloadTemp(localPath)
+
+            await renderTemplate(path.join(process.cwd(), componentName), [], { component: { hasScss, hasTypescript } }, 'template/comp_temp', rename)
+
+
+            loadingAnim.succeed(`Component has been created!`);
+          } catch (error) {
+            throw error;
+          }
+
+
+
+
+
+
         })
+        .on('--help', () => {
+          console.log('')
+          console.log('  Examples:');
+          console.log('')
+          console.log('    $ myvue component|comp [-s|--scss][-t|--typescript] <component-name>')
+          console.log('')
+        });
+      // help
+      program
+        .on('--help', () => {
+          console.log('')
+          console.log('  Examples:');
+          console.log('')
+          console.log('    $ myvue init [project-name]')
+          console.log('    $ myvue component|comp [-s|--scss][-t|--typescript] <component-name>')
+          console.log('')
+        })
+      // run
+      program
+        .parse(process.argv)
 
-
-      program.parse(process.argv);
+      if (!program.args.length) program.help()
 
     } catch (error) {
       console.log(error)
@@ -321,3 +392,6 @@ const getGitConfig = function (): Promise<{ name: string, email: string }> {
     }
 
   })();
+
+
+
